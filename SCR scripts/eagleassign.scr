@@ -1,0 +1,80 @@
+# ASSIGN Script
+#
+# Assigns several function keys to start various ULPs for easy library editing.
+#
+# This version by Tennessee Carmel-Veilleux <tcv - at - ro.boto.ca> 02/07/2006
+# comment character '#'
+LBR:
+ASSIGN     C+R 'run cmd-rename-in-lbr.ulp;';     # Control+R Rename Sym/Pac/Dev
+ASSIGN   S+C+R 'run remove-dev-sym-pac.ulp;';    # Shift+Control+R remove Device from LBR
+ASSIGN     C+S 'write;';                         # Control+S           save file
+ASSIGN   S+C+S 'write;';                         # Shift+Control+S     save file
+ASSIGN A+S+C+S 'write;';                         # Alt+Shift+Control+S save file
+ASSIGN     C+M 'DESCRIPT'
+ASSIGN    A+BS 'undo;';                          # Alt + Backspace : UNDO
+ASSIGN     C+Z 'undo;';                          # Control+Z : UNDO
+ASSIGN   S+C+Z 'undo;';                          # Shift+Control+Z : UNDO
+
+PAC:
+ASSIGN   C+A+N 'grid inch; ch size 0.040; ch ratio 20; grid last; change lay tname; text  >NAME'
+ASSIGN   C+A+V 'grid inch; ch size 0.040; ch ratio 20; grid last; change lay tvalue; text  >VALUE'
+ASSIGN     C+S 'write;';                         # Control+S           save file
+ASSIGN   S+C+S 'write;';                         # Shift+Control+S     save file
+ASSIGN A+S+C+S 'write;';                         # Alt+Shift+Control+S save file
+ASSIGN     C+M 'DESCRIPT'
+ASSIGN    A+BS 'undo;';                          # Alt + Backspace : UNDO
+ASSIGN     C+Z 'undo;';                          # Control+Z : UNDO
+ASSIGN   S+C+Z 'undo;';                          # Shift+Control+Z : UNDO
+
+SYM:
+ASSIGN   C+S+N 'grid inch 0.050 on; ch size 70; change lay names; text  >NAME'
+ASSIGN   C+S+V 'grid inch 0.050 on; ch size 70; change lay values; text  >VALUE'
+ASSIGN     C+S 'write;';                         # Control+S           save file
+ASSIGN   S+C+S 'write;';                         # Shift+Control+S     save file
+ASSIGN A+S+C+S 'write;';                         # Alt+Shift+Control+S save file
+ASSIGN     C+M 'DESCRIPT'
+ASSIGN    A+BS 'undo;';                          # Alt + Backspace : UNDO
+ASSIGN     C+Z 'undo;';                          # Control+Z : UNDO
+ASSIGN   S+C+Z 'undo;';                          # Shift+Control+Z : UNDO
+
+SCH:
+ASSIGN     C+Z 'undo;';                          # Control+Z : UNDO
+ASSIGN   S+C+Z 'undo;';                          # Shift+Control+Z : UNDO
+ASSIGN     C+S 'write;';                         # Control+S           save file
+ASSIGN   S+C+S 'write;';                         # Shift+Control+S     save file
+ASSIGN A+S+C+S 'write;';                         # Alt+Shift+Control+S save file
+ASSIGN     C+N 'run editnext-sheet.ulp;';          # Control-N edit next
+ASSIGN     C+P 'run editprev-sheet.ulp;';          # Control-N edit previous
+ASSIGN   F12 'run findfrst';                       # F12 find first
+ASSIGN   C+F12 'run findnext';                     # Control-F12 find next
+ASSIGN      F3 'name';                           # F3 : NAME
+ASSIGN      F4 'value';                          # F4 : VALUE
+ASSIGN      F5 'info';                           # F5 : INFO
+ASSIGN      F6 'show';                           # F6 : SHOW
+ASSIGN      F7 'move';                           # F7 : MOVE
+ASSIGN      F8 'split';                          # F8 : SPLIT
+ASSIGN      F9 'net';                            # F9 : NET
+ASSIGN      F10 'delete';                        # F10 : DELETE
+
+
+BRD:
+ASSIGN     C+S 'write;';                         # Control+S           save file
+ASSIGN   S+C+S 'write;';                         # Shift+Control+S     save file
+ASSIGN A+S+C+S 'write;';                         # Alt+Shift+Control+S save file
+ASSIGN   S+C+P 'run cam2printer 0 layout2.cam;'; # start ULP
+ASSIGN     C+D 'run cam2dxf layout2.cam;';       # start ULP
+ASSIGN   F12 'run findfrst;';                    # F12 find first
+ASSIGN   C+F12 'run findnext;';                  # Control-F12 find next
+ASSIGN    A+BS 'undo;';                          # Alt + Backspace : UNDO
+ASSIGN     C+Z 'undo;';                          # Control+Z : UNDO
+ASSIGN   S+C+Z 'undo;';                          # Shift+Control+Z : UNDO
+ASSIGN      F3 'name';                           # F3 : NAME
+ASSIGN      F4 'value';                          # F4 : VALUE
+ASSIGN      F5 'info';                           # F5 : INFO
+ASSIGN      F6 'show';                           # F6 : SHOW
+ASSIGN      F7 'move';                           # F7 : MOVE
+ASSIGN      F8 'split';                          # F8 : SPLIT
+ASSIGN      F9 'route';                          # F9 : ROUTE
+ASSIGN      F10 'unroute';                        # F10 : UNROUTE
+
+

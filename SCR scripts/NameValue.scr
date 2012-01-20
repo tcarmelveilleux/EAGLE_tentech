@@ -1,0 +1,18 @@
+# Tennessee Carmel-Veilleux <tcv - at - ro.boto.ca>
+SYM:
+ch size 0.07;
+ch ratio 8;
+ch layer Names;
+text '>NAME' (R 0 0);
+ch layer Values;
+text '>VALUE' (R 0 -0.1);
+ch lay Sym;
+
+PAC:
+ch size 0.04;
+ch ratio 20;
+ch layer tNames;
+text '>NAME' (R 0 0);
+ch layer tValues;
+text '>VALUE' (R 0 -0.05);
+ch lay tPlace;

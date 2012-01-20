@@ -1,0 +1,18 @@
+# Draw the origin datum circle at the current mark:
+# Radius: 40 mils
+# Width: 5 mils
+#
+# Tennessee Carmel-Veilleux <tcv - at - ro.boto.ca> 01/15/2007
+
+set UNDO_LOG off;
+grid inch;
+change layer 47;
+change width 0.005;
+circle (R 0 0) (R 0.04 0)
+set wire_bend 5;
+change pour solid;
+polygon 0.005 (R 0 0) (R 0 0.04) (R 0.04 0) (R 0 0);
+set wire_bend 6;
+polygon (R 0 0) (R -0.04 0) (R 0 -0.04) (R 0 0);
+set UNDO_LOG on;
+grid last;

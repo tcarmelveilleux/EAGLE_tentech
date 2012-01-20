@@ -1,0 +1,138 @@
+string PATTERN[];
+string PATTERNdata[];
+string EQUIV[];
+string EQUIVdata[];
+int nPATTERN = 0;
+int nPATTERNdata = 0;
+int nEQUIV = 0;
+int nEQUIVdata = 0;
+string seed;
+
+string cmd = "grid inch 0.01;\n";
+
+void ErrorMessage(string message) 
+{
+    string s;
+    
+    sprintf(s,":%s",message);
+    dlgMessageBox(s);
+    exit(1);
+}
+
+real AngleDifference(real original, real equivalent)
+{
+    real difference = 0.0;
+    
+    difference = original - equivalent;
+    
+    return difference;
+}
+    
+if (board)
+{
+    board(B)
+    {
+        string s;
+        real x1, xi, xd;
+        real y1, yi, yd;
+        real angle1, angle2;
+        char mirror1, mirror2, mirrord;
+        int i, result;
+        string seed = "___!!!___";
+        string SEEDdata[];
+        
+        nPATTERN = strsplit(PATTERN,strupr(argv[1]),',');
+        nEQUIV = strsplit(EQUIV,strupr(argv[2]),',');
+        if (argc > 3)
+            seed = strupr(argv[3]);
+        
+        if (nPATTERN != nEQUIV) ErrorMessage("Both list are not the same size !!!");
+        
+        // Gather parts information
+        B.elements(E)
+        {
+            mirrord = E.mirror ? 'M':' ';
+
+            sprintf(s,"%s\t%.3f\t%c\t%.6f\t%.6f",E.name, E.angle, mirrord, u2inch(E.x), u2inch(E.y));
+            
+            if (lookup(PATTERN,E.name,0))
+            {
+                PATTERNdata[nPATTERNdata++] = s;
+            } else if (lookup(EQUIV,E.name,0)) {
+                EQUIVdata[nEQUIVdata++] = s;
+            } else if (E.name == seed) {
+                SEEDdata[0] = s;
+            }
+        }
+        
+        if (nPATTERNdata != nPATTERN) ErrorMessage("Some PATTERN parts not found !");
+        if (nEQUIVdata != nEQUIV) ErrorMessage("Some EQUIV parts not found !");
+        
+        // Process first part and get root position
+        xi = strtod(lookup(PATTERNdata, PATTERN[0], 3));
+        yi = strtod(lookup(PATTERNdata, PATTERN[0], 4));
+        
+        // Seed present: get relative positionning
+        if (seed != "___!!!___")
+        {
+            x1 = strtod(lookup(SEEDdata, seed, 3));
+            y1 = strtod(lookup(SEEDdata, seed, 4));
+            
+            sprintf(s,"MARK (R %.6f %.6f);\n", xi - x1, yi - y1);
+            cmd += s;
+        }
+        
+        // Process each subsequent part, placing it to the position required relative to the first
+        for (i = 0; i < nPATTERN; i++)
+        {
+            x1 = strtod(lookup(PATTERNdata, PATTERN[i], 3));
+            y1 = strtod(lookup(PATTERNdata, PATTERN[i], 4));
+            
+            // Get relative position
+            xd = x1 - xi;
+            yd = y1 - yi;
+            
+            // Get difference in angle and mirror
+            angle1 = strtod(lookup(PATTERNdata, PATTERN[i], 1));
+            angle2 = strtod(lookup(EQUIVdata, EQUIV[i], 1));
+            
+            s = lookup(PATTERNdata, PATTERN[i], 2);
+            mirror1 = s[0];
+            s = lookup(EQUIVdata, EQUIV[i], 2);
+            mirror2 = s[0];
+        
+            if (mirror1 != mirror2) mirrord = 'M'; else mirrord = ' ';
+                
+            sprintf(s,"MOVE '%s' (R %.6f %.6f); ROTATE %cR%.3f '%s';\n", EQUIV[i], xd, yd, mirrord, AngleDifference(angle1, angle2), EQUIV[i]);
+            cmd += s;
+        }
+        
+        cmd += "grid last;\n";
+        
+        result = dlgDialog("Edit and execute script") {
+            dlgHBoxLayout {
+                dlgSpacing(500); // Force width of dialog to 500
+            }
+            dlgTextEdit(cmd);
+            dlgHBoxLayout {
+                dlgPushButton("+Execute") dlgAccept();
+                dlgPushButton("-Cancel") dlgReject();
+            }
+        };
+        
+        // Execute script if it was accepted
+        if (!result)
+            exit(0);
+        else
+            exit(cmd);    
+    }
+} else {
+    ErrorMessage("You must run this ULP in the board !");
+}
+
+    
+    
+    
+    
+    
+    

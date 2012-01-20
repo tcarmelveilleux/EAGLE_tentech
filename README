@@ -1,0 +1,8 @@
+This repos contains a series of SCR and ULP programs for EAGLE (4.11+) as
+well as Python scripts that help EAGLE users.
+
+Everything was done between 2005-2011 for all sorts of projects I had at
+my consulting company Entreprises TenTech and at the SONIA project of ETS
+(http://sonia.etsmtl.ca).
+
+This code is provided under the MIT license. See file LICENSE.

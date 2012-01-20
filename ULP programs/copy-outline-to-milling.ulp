@@ -1,0 +1,145 @@
+/****************************************************************************************
+*                                                                                       *
+*   Milling Layer Generation for Boards                                                 *
+*                                                                                       *
+*   Filename: copy-outline-to-milling.ulp                                               *
+*   Version: 1.1                                                                        *
+*   Author: Tennessee Carmel-Veilleux <tcv - at - ro.boto.ca>                           *
+*   Date: August 31st 2005                                                              *
+*   Company: Entreprises TenTech                                                        *
+*                                                                                       *                                                                                       *
+*   This ULP program generates a script to copy the board outline (wires and arcs) from *
+*   layer 20 (Dimension) to layer 46 (Milling). The script can be run directly from the *
+*   dialog. It copies all wires from both the board and the elements of the board       *
+*                                                                                       *
+****************************************************************************************/
+#usage "<b>Copy board outline to milling layer v1.1</b><p></p>\n"
+       "<p>This ULP generates a script to copy the board outline to the milling layer.</p>\n"
+       "<author>Author: Tennessee Carmel-Veilleux (tcv -at - ro.boto.ca)</author>"
+#require 4.13
+
+string VERSION = "1.1";
+
+int result = 0; // Dialog result
+int old_style = WIRE_STYLE_CONTINUOUS; // Wire Style
+
+string wire_style_names[] = {"Continuous","LongDash","ShortDash","DashDot"};
+int wire_style_numbers[] = {WIRE_STYLE_CONTINUOUS, WIRE_STYLE_LONGDASH, 
+                            WIRE_STYLE_SHORTDASH, WIRE_STYLE_DASHDOT};
+string cap_style_names[] = {"Flat","Round"};
+int cap_style_numbers[] = {CAP_FLAT, CAP_ROUND};
+
+string str; // Temporary string
+// Script command to execute
+string cmd = "GRID MIL;\nSET WIRE_BEND 2;\nSET UNDO_LOG OFF;\nLAYER milling;\n";
+
+/* ------------- UTILITY FUNCTIONS --------------- */
+
+//
+// Returns wire style name from wire style number
+//
+
+string GetWireStyle(int style) {
+    int i; // Loop index
+    string name = "Continuous"; // Default return style is continuous
+
+    for (i = 0; i < 4; i++) {
+        if (style == wire_style_numbers[i]) {
+            name = wire_style_names[i];
+        }
+    }
+ 
+    return name;
+}
+
+//
+// Returns arc cap style name from cap style number
+//
+
+string GetCapStyle(int style) {
+    int i; // Loop index
+    string name = "Flat"; // Default return style is continuous
+
+    for (i = 0; i < 2; i++) {
+        if (style == cap_style_numbers[i]) {
+            name = cap_style_names[i];
+        }
+    }
+ 
+    return name;
+}
+
+//
+// Draws a wire or arc from a UL_WIRE
+//
+
+void DrawWire(UL_WIRE W) {
+  if (W.arc) {
+     str = "";
+     sprintf(str,"WIRE %s %.3f (%.3f %.3f) %+.3f (%.3f %.3f);\n",GetCapStyle(W.arc.cap), 
+             u2mil(W.width), u2mil(W.x1), u2mil(W.y1), W.curve, u2mil(W.x2), u2mil(W.y2));
+  } else  {
+     str = "";
+     sprintf(str, "WIRE %.3f (%.3f %.3f) (%.3f %.3f);\n",
+                     u2mil(W.width), u2mil(W.x1), u2mil(W.y1), u2mil(W.x2), u2mil(W.y2) );
+  }
+  cmd += str;
+}
+
+/* ------------- MAIN ROUTINE --------------- */
+if (board) {
+    board(B) {
+        B.wires(W) {
+            // Iterate through all wires on layer 20 (Dimension)
+            if (W.layer == 20) {
+          
+                // If wire style has changed from last wire, make sure the CHANGE command is added
+                if (W.style != old_style) {
+                    old_style = W.style;
+                    cmd += "CHANGE STYLE " + GetWireStyle(W.style) + ";\n";
+                }
+          
+                DrawWire(W);
+            }
+        }
+
+        B.elements(E) {
+            E.package.wires(W) {
+                // Iterate through all wires on layer 20 (Dimension)
+                if (W.layer == 20) {
+          
+                    // If wire style has changed from last wire, make sure the CHANGE command is added
+                    if (W.style != old_style) {
+                        old_style = W.style;
+                        cmd += "CHANGE STYLE " + GetWireStyle(W.style) + ";\n";
+                    }
+          
+                    DrawWire(W);
+                }
+            }
+        }
+    }
+
+    cmd += "CHANGE STYLE continuous;\nGRID LAST;\nSET UNDO_LOG ON;\n";
+
+    //  EditBox
+    result = dlgDialog("Edit and execute script") {
+        dlgHBoxLayout {
+            dlgSpacing(500); // Force width of dialog to 500
+        }
+        dlgTextEdit(cmd);
+        dlgHBoxLayout {
+            dlgPushButton("+Execute") dlgAccept();
+            dlgPushButton("-Cancel") dlgReject();
+        }
+    };
+    
+    // Execute script if it was accepted
+    if (!result)
+        exit(0);
+    else
+        exit(cmd);    
+} else {
+    dlgMessageBox(":You must run this ULP in board !");
+    exit(1);
+}

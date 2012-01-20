@@ -1,0 +1,16 @@
+# Tennessee Carmel-Veilleux <tcv - at - ro.boto.ca>
+DISP none;
+Disp Top Vias Pads Dimension;
+export IMAGE _TOP.png 300;
+DISP none;
+Disp 2 Vias Pads Dimension;
+export IMAGE _LY2.png 300;
+DISP none;
+Disp 15 Vias Pads Dimension;
+export IMAGE _LY3.png 300;
+DISP none;
+Disp Bottom Vias Pads Dimension;
+export IMAGE _BOT.png 300;
+DISP none;
+Disp Top Bottom 2 15 Vias Pads Drills Holes Dimension Measures Document;
+export IMAGE _Overview.png 300;

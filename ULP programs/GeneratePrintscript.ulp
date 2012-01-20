@@ -1,0 +1,77 @@
+/* Génère un script pour l'impression des données d'assemblage */
+/* À exécuter dans le BOARD */
+/* Les options peuvent être modifiées individuellement lors du dialogue d'impression */
+/* Tennessee Carmel-Veilleux (<tcv - at - ro.boto.ca>) */
+
+
+int used[] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+string routeDisplay = "Display None Pads Vias Dimension ";
+
+string topAssemblyDisplay = "Display None Pads tPlace Dimension -tValues -tOrigins";
+string botAssemblyDisplay = "Display None Pads bPlace Dimension -bValues -bOrigins";
+string drillDrawingDisplay = "Display None Milling Drills Holes Measures";
+
+void CheckPresence(UL_WIRE W)
+{
+    if (W.layer >= 1 && W.layer <= 16)
+        used[W.layer - 1] = 1;
+}
+
+board(B)
+{
+    B.wires(W)
+    {
+        CheckPresence(W);
+    }
+
+    B.texts(T)
+    {
+        T.wires(W)
+        {
+            CheckPresence(W);
+        }
+    }
+}
+
+int i;
+
+output("PrintProject.scr")
+{
+
+    printf("edit .sch;\n");
+    printf("Display 91 92 94 95 96; PRINT - 1 -1 BLACK ROTATE\n");
+    printf("edit .brd; ratsnest;\n");
+    for (i = 1; i < 17; i++)
+    {   
+        if (used[i-1])
+        {
+            printf("%s %d ",routeDisplay, i);
+            if (i == 1)
+            {
+                printf("tKeepout;\n");
+            } else if (i == 16) {
+                printf("bKeepout;\n");
+            } else {
+                printf(";\n");
+            }
+            printf("print - 10 -1 BLACK ROTATE\n");
+        }
+    }
+
+    printf("%s;\n",topAssemblyDisplay);
+    printf("print - 10 -1 BLACK ROTATE\n");
+    printf("%s vias;\n",topAssemblyDisplay);
+    printf("print - 10 -1 BLACK ROTATE\n");
+
+
+    printf("%s;\n",botAssemblyDisplay);
+    printf("print - 10 -1 BLACK ROTATE MIRROR\n");
+    printf("%s vias;\n",botAssemblyDisplay);
+    printf("print - 10 -1 BLACK ROTATE MIRROR\n");
+
+    printf("%s;\n",drillDrawingDisplay);
+    printf("print - 10 -1 BLACK ROTATE\n");
+}
+             
+    

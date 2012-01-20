@@ -1,0 +1,217 @@
+#usage "<b>Extend connections (fan out) from a part to individual net ports from a netlist.</b>\n"
+       "<P>Usage: RUN fanout.ulp [&]PartName ExtensionLength [NetlistFilename]</P>"
+       "<UL>"
+       "<LI><B>PartName:</B> Name of the part to fan out. If name starts with '&', the package PAD names will be matched instead "
+       "of the symbol PIN names.</LI>"
+       "<LI><B>ExtensionLength:</B> Length of the nets extending from the symbol in INCHES. A good value is 0.3. Please use multiples of 0.1 in.</LI>"
+       "<LI><B>NetlistFilename:</B> filename of input file (TSV format, two columns). The file must be TAB-separated (TSV) and contain "
+       "at least two columns: first column is PIN/PAD name, second column is NET to attach. Example:"
+       "<UL><LI>1\tVCC</LI><LI>2\tGND</LI><LI>3\tSIGNAL</LI><LI>...</LI><LI>40\tA38</LI></UL>If a filename is provided directly and it does not "
+       "contain an absolute path, the current project directory will be used as the root for the filename. If filename is '?', a File Save Dialog will be shown.</LI>"
+       "</UL>"
+       "<p>"
+       "Extends nets from the part following the pin/net list provided. Every pin matching an entry in the file will have a net of length "
+       "ExtensionLength and have a PORT-VAR4 with label attached at the end. This script will only fanout pins on the LEFT and RIGHT sides "
+       "of a part. If dealing with connectors, it is best to use the PAD names (PartName option starts with '&') instead of PIN names. For "
+       "things like MCUs and FPGAs, it is best to use the actual PIN names (ie: IO3/UART_TX) used in the symbol, so that the pin/net list "
+       "can be built more easily. You can use Microsoft Excel or OpenOffice.Org to generated TAB-separated files with the NAME and NET columns "
+       "required (in that order).</P>"
+       "<p>"
+       "<author>Author: Tennessee Carmel-Veilleux (<tcv - at - ro.boto.ca>)</author>"
+
+// Revision: $Id: fanout.ulp 530 2007-03-01 20:30:11Z veilleux $
+
+int USE_PAD = 0;
+real EXTENSION_LEN;
+string NETS[];
+string cmd;
+
+string GetProjectPath(void) 
+{
+    string s = "", p = "";
+    
+    if (library)  { library(L)   s = L.name;}
+    if (board)    { board(B)     s = B.name;}
+    if (schematic){ schematic(S) s = S.name;}
+  
+    char c = '/';
+    int pos = strrchr(s, c);
+  
+    if (pos >= 0) {
+        p = strsub(s, 0, pos + 1);
+    }
+    return p;
+}
+
+// returns 1 if FileName exists (including path)
+int FileExists(string fileName) 
+{
+    string a[];
+    
+    int n = fileglob(a, fileName);
+    if (n == 0)
+        return 0;
+    else 
+        return 1;
+}
+
+void AddFanout(UL_PIN pin, string net, int left)
+{
+    string str, tempnet;
+    real x1, x2, x3, x4;
+    char mirror;
+    
+    if (left)
+    {
+        x1 = -EXTENSION_LEN;
+        x2 = -0.1;
+        x3 = EXTENSION_LEN;
+        x4 = -0.5;
+        mirror = 'M';
+    } else {
+        x1 = EXTENSION_LEN;
+        x2 = 0.1;
+        x3 = -EXTENSION_LEN;
+        x4 = 0.1;
+        mirror = ' ';
+    }
+    
+    if (net != "___!!!___") 
+        sprintf(tempnet,"'%s'", net);
+    else
+        tempnet = "";
+    
+    sprintf(str,"MARK (%2.3f %2.3f); MARK (R %1.2f 0);\nadd port-var4 %cR0 (R %1.2f 0);", u2inch(pin.x), u2inch(pin.y), x1, mirror, x2);
+    cmd += str;
+    sprintf(str,"NET %s (R 0 0) (R %1.2f 0); label (R 0 0) (R %1.2f 0);\n", tempnet, x3, x4);
+    cmd += str;
+}    
+
+void ErrorMessage(string message) 
+{
+    string s;
+    
+    sprintf(s,":%s",message);
+    dlgMessageBox(s);
+    exit(1);
+}
+
+void ProcessFanout(UL_SCHEMATIC S, string partname)
+{
+    string net;
+    string name;
+    
+    S.parts(P)
+    {
+        P.instances(I)
+        {
+            // If using PADs as references, use the part name (unqualified by gate)
+            if (strupr(USE_PAD ? P.name : I.name) == strupr(partname))
+            {
+                I.gate.symbol.pins(pin)
+                {                       
+                    if (pin.angle == 0.0 || pin.angle == 180.0)
+                    {
+                        if (USE_PAD)
+                            name = pin.contact.name;
+                        else
+                            name = pin.name;
+                        
+                        net = "___!!!___";
+                        if (NETS[0] != "" && lookup(NETS, "", 1, '\t'))
+                            net = lookup(NETS, name,1,'\t');
+                        
+                        if (net != "" && net != "-" && net != "___!!!___")
+                        {
+                            if (pin.angle == 0.0)
+                                AddFanout(pin, net, 1);
+                            else
+                                AddFanout(pin, net, 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+if (schematic)
+{
+    schematic(S)
+    {
+        string fileName;
+        string partName;
+        int result;
+        
+        if (argc < 3) 
+        {
+            ErrorMessage("Not enough arguments !\nUsage: RUN fanout.ulp [&]PartName ExtensionLength [NetlistFilename]");
+        }
+        
+        partName = argv[1];
+        
+        // Modifier: & means use pads instead of pin
+        if (partName[0] == '&')
+        {
+            USE_PAD = 1;
+            partName = strsub(partName,1,strlen(partName) - 1);
+        }
+        
+        EXTENSION_LEN = strtod(argv[2]);
+        
+        if (EXTENSION_LEN == 0.0)
+            ErrorMessage("Extension Length Invalid !");
+        
+        // If no filename is provided, show a file selection dialog
+        if (argc == 3)
+        {
+            argv[argc++] = "?";
+            
+        }
+        
+        if (argc > 3)
+        {
+            if (argv[3] == "?")
+            {
+                // Ask user for file to open
+                fileName = dlgFileOpen("Load pin list...", "", "*.tsv");
+                if (fileName != "" && !FileExists(fileName)) 
+                {
+                    ErrorMessage("File does not exist !");
+                    NETS[0] = "";
+                }
+            } else {
+                fileName = argv[3];
+                // If file does not contain path, use current project path
+                if (filedir(fileName) == "") fileName = GetProjectPath() + fileName;
+            }
+            fileread(NETS, fileName);
+        } else 
+            NETS[0] = "";
+        
+        cmd = "grid inch 0.1; change class 0; change size 0.07; change ratio 8; change layer 95; USE frames;\n";
+        
+        ProcessFanout(S, partName);
+        
+        cmd += "grid last;\n";
+        
+        result = dlgDialog("Edit and execute script") {
+            dlgHBoxLayout {
+                dlgSpacing(500); // Force width of dialog to 500
+            }
+            dlgTextEdit(cmd);
+            dlgHBoxLayout {
+                dlgPushButton("+Execute") dlgAccept();
+                dlgPushButton("-Cancel") dlgReject();
+            }
+        };
+        
+        // Execute script if it was accepted
+        if (!result)
+            exit(0);
+        else
+            exit(cmd);    
+    }
+} else {
+    ErrorMessage("You must run this ULP in the schematic !");
+}

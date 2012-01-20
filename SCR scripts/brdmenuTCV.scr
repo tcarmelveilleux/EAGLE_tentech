@@ -1,0 +1,61 @@
+# Board Command Menu Setup
+# Also includes widths and diameters
+#
+# Tennessee Carmel-Veilleux <tcv - at - ro.boto.ca> 02/07/2006
+
+MENU 'Grid {\
+             1 mil : Grid inch 0.001;|\
+             10 mils : Grid inch 0.010; Grid alt inch 0.005; |\
+             12.5 mils : Grid inch 0.0125; Grid alt inch 0.00625; |\
+             25 mils : Grid inch 0.025; Grid alt inch 0.0125;|\
+             50 mils : Grid inch 0.05; Grid alt inch 0.01;|\
+             100 mils : Grid inch 0.1; |\
+             --- |\
+             0.1 mm : Grid mm 0.1; Grid alt mm 0.05; |\
+             1 mm : Grid mm 1; Grid alt mm 0.1; |\
+             --- |\
+             On : Grid Dots On; | \
+             Off : Grid Off;\
+     }' \
+     'Display {\
+                Top : Display None Top Pads Vias Dimension Unrouted tKeepout; |\
+                Inner1 : Display None 2 Pads Vias Dimension Unrouted; |\
+                Inner2 : Display None 15 Pads Vias Dimension Unrouted; |\
+	            Bottom : Display None Bottom Pads Vias Dimension Unrouted bKeepout; |\
+                ALL : Display None Top 2 3 5 6 7 8 9 10 11 12 13 14 15 Bottom Pads Vias tKeepout bKeepout Dimension Unrouted; |\
+                --- |\
+                Place Top : Display None Top Pads Vias tOrigins tPlace -tValues tKeepout Dimension Unrouted; |\
+                Place Bottom : Display None Bottom Pads Vias bOrigins bPlace -bValues bKeepout Dimension Unrouted; |\
+                Place BOTH : Display None Top Bottom Pads Vias tOrigins bOrigins tPlace -tValues bPlace -bValues tKeepout bKeepout Dimension Unrouted; |\
+                No Origins : Display -tOrigins -bOrigins; |\
+                --- |\
+                Silkscreen {\
+                            Top ALL : Display None Top Pads Vias tPlace Dimension Unrouted; |\
+                            Bottom ALL : Display None Bottom Pads Vias bPlace Dimension Unrouted; |\
+                           Top Assembly : Display None Pads tPlace Dimension -tValues -tOrigins; |\
+                           Bottom Assembly : Display None Pads bPlace Dimension -bValues -bOrigins; |\
+                            Show Top Silk : Display None Pads Vias tPlace Dimension -tValues -tDocu -tOrigins; |\
+                            Show Bottom silk : Display None Pads Vias bPlace Dimension -bValues -bDocu -bOrigins; |\
+                            Edit Top Silk : Display None Pads Vias tPlace Dimension tStop -tValues -tDocu -tOrigins; |\
+                            Edit Bottom silk : Display None Pads Vias bPlace Dimension bStop -bValues -bDocu -bOrigins; \
+                           } |\
+                Drill Drawing : Display None Milling Drills Holes Measures; |\
+                --- |\
+                Solder Mask {\
+                           tStop On : Display tStop; |\
+                           tStop Off : Display -tStop; |\
+                           bStop On : Display bStop; |\
+                           bStop Off : Display -bStop; \
+                } |\
+                Keepout {\
+                           On : Display tKeepout bKeepout; |\
+                           Off : Display -tKeepout -bKeepout; \
+                }\
+     }' \
+     '---'\
+     'Fit : Window Fit;';
+
+
+GRID INCH;
+SET WIDTH_MENU 0 0.01 0.012 0.015 0.02 0.025 0.03 0.04 0.05 0.06 0.07 0.1 0.150 0.2;
+SET DRILL_MENU 0.012 0.016 0.02 0.028 0.032 0.036 0.040 0.048 0.052 0.06 0.072 0.1 0.125;

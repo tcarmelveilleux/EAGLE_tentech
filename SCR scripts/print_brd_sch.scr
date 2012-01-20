@@ -1,0 +1,11 @@
+# <tcv - at - ro.boto.ca>
+# Prints the required pages for assembly
+;
+edit .sch;
+print 1.0 -1 rotate black -mirror;
+edit .brd;
+Display None Pads tPlace Dimension -tValues -tOrigins;
+print 2.0 -1 rotate black -mirror;
+Display None Pads bPlace Dimension -bValues -bOrigins;
+print 2.0 -1 rotate black mirror;
+Display None Pads tPlace Dimension;

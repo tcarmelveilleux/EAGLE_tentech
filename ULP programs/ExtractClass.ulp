@@ -1,0 +1,96 @@
+#usage "<b>Extracts a list of all nets belonging to specified classes</b>\n"
+       "<P>RUN ExtractClass.ulp ClassNames Filename</P>"
+       "<UL>"
+       "<LI><B>ClassNames:</B> list of class NAMES separated by '|' (ex: 'DEFAULT|POWER|ANALOG')</LI>"
+       "<LI><B>Filename:</B> filename of output file (TSV format, one column). If filename is '?', a File Save Dialog will be shown.</LI>"
+       "</UL>"
+       "<p>"
+       "Generates a list of all nets in the specified list (see ClassNames above), with one net per line in the output file. Nets are"
+       " sorted alphabetically.</P>"
+       "<p>"
+       "<author>Author: Tennessee Carmel-Veilleux (<tcv - at - ro.boto.ca>)</author>"
+
+string CLASSES[];
+numeric string NETS[];
+int NETS_COUNT = 0;
+int CLASSES_COUNT = 0;
+
+void ErrorMessage(string message) 
+{
+    string s;
+    
+    sprintf(s,":%s",message);
+    dlgMessageBox(s);
+    exit(1);
+}
+
+string GetProjectPath(void) 
+{
+    string s = "", p = "";
+    
+    if (library)  { library(L)   s = L.name;}
+    if (board)    { board(B)     s = B.name;}
+    if (schematic){ schematic(S) s = S.name;}
+  
+    char c = '/';
+    int pos = strrchr(s, c);
+  
+    if (pos >= 0) {
+        p = strsub(s, 0, pos + 1);
+    }
+    return p;
+}
+
+schematic(S)
+{
+    string s;
+    string fileName;
+    int i;
+    
+    if (argc != 3)
+    {
+        ErrorMessage("Not enough arguments !\n\nUsage: RUN ExtractClass.ulp ClassNames Filename\n\n"+
+        "ClassNames is a '|'-separated list\nIf Filename is '?', a file save dialog will appear");
+    }
+    
+    // Get list of classes
+    CLASSES_COUNT = strsplit(CLASSES, strupr(argv[1]), '|');
+    if (CLASSES_COUNT < 1)
+        ErrorMessage("No classes provided !");
+    
+    // Show file dialog if requested
+    if (argv[2] == "?")
+    {
+        sprintf(s,"Save nets from '%s'...", argv[1]);
+        fileName = dlgFileSave(s, "", "*.tsv");
+    } else {
+        fileName = argv[2];
+        // If file does not contain path, use current project path
+        if (filedir(fileName) == "" && fileName != "") fileName = GetProjectPath() + fileName;
+    }
+
+    if (fileName != "") {
+        output(fileName) 
+        {
+            printf("Net\n");
+            S.nets(N)
+            {
+                // Check if current net belongs to one of the specified classes
+                if (lookup(CLASSES,strupr(N.class.name),0))
+                {
+                    NETS[NETS_COUNT++] = strupr(N.name);
+                }
+            }
+            
+            // Sort and display the output list
+            sort(NETS_COUNT, NETS);
+            for (i = 0; i < NETS_COUNT; i++)
+                printf("%s\n",NETS[i]);
+        }
+        
+        sprintf(s,";Nets exported in '%s'\nNumber of nets: %d", fileName, NETS_COUNT);
+        dlgMessageBox(s);
+    } else {
+        ErrorMessage("No filename provided !");
+    }
+}

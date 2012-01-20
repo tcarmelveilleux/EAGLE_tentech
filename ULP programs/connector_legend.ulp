@@ -1,0 +1,87 @@
+#usage "<b>Generates a list of connector pinouts</b>\n"
+       "<p>"
+       "Generates a list of connector pinouts from the name of nets connected "
+       "to pins of parts with names starting with 'J'. Outputs a report file "
+       "as ConnList.txt and a TSV file for Excel as ConnList.tsv."
+       "<p>"
+       "<author>Author: Tennessee Carmel-Veilleux (tcv -at- ro.boto.ca)</author>"
+
+numeric string result[];
+int nResult = 0;
+numeric string tsvResult[];
+int nConnectors = 0;
+numeric string connectorNames[];
+
+void IdentifyConnectors(UL_SCHEMATIC SCH)
+{
+    string name;
+    
+    SCH.parts(P)
+    {
+        name = P.name;
+        if (name[0] == 'J')
+        {
+            // Add part to list if name starts with J (J, JP, etc)
+            connectorNames[nConnectors] = P.name;
+            nConnectors++;
+        }
+    }
+}
+
+void IdentifyConnections(UL_SCHEMATIC SCH)
+{
+    //int nPins;
+    string s;
+    
+    SCH.nets(N)
+    {
+        //nPins = 0;
+        N.pinrefs(P)
+        {
+            if (lookup(connectorNames,P.part.name,0) != "")
+            {
+                sprintf(s, "Connector %s.%s on net %s", P.part.name, P.pin.contact.pad.name, N.name);
+                result[nResult] = s;
+                sprintf(s, "%s.%s\t%s", P.part.name, P.pin.contact.pad.name, N.name);
+                tsvResult[nResult] = s;
+                nResult++;
+            }
+        }
+    }
+}
+        
+if (schematic) 
+{
+    string s;
+
+    schematic(SCH) 
+    {
+        IdentifyConnectors(SCH);
+        sort(nConnectors, connectorNames);
+        IdentifyConnections(SCH);
+    }
+  //  EditBox
+    sort(nResult, result);
+    sort(nResult, tsvResult);
+    
+    int Result = dlgDialog("Connector Net List") 
+    {
+        s = strjoin(result, '\n') + "\n";
+        dlgTextEdit(s);
+        dlgHBoxLayout 
+        {
+            dlgPushButton("+&OK") dlgAccept();
+        }
+        
+    };
+    
+    
+    int i;
+    
+    output("ConnList.txt") { for (i = 0; i < nResult; i++) printf("%s\n", result[i]); } 
+    output("ConnList.tsv") { printf("Pin\tNet\n"); for (i = 0; i < nResult; i++) printf("%s\n", tsvResult[i]); } 
+    
+} else {
+   dlgMessageBox("\n    Start this ULP in a Schematic    \n");
+   exit (0);
+}
